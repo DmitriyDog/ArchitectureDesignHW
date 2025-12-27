@@ -67,7 +67,6 @@ public class ProductRepository : IProductRepository
     {
         // DRY: Используем стандартный подход к запросам
         return await _context.Products
-            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == itemId && p.IsAvailable);
     }
 
