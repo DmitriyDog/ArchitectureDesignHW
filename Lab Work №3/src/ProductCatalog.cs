@@ -1,4 +1,4 @@
-// SOLID: Interface Segregation
+// SOLID: наследование интерфейсов (принцип открытости - закрытости)
 public interface IProductCatalog
 {
     Task<Product?> GetItemAsync(string itemId);
@@ -18,7 +18,7 @@ public class ProductCatalog : IProductCatalog
         _logger = logger;
     }
 
-    // KISS: Простой метод получения товара
+    // KISS: простой метод получения товара
     public async Task<Product?> GetItemAsync(string itemId)
     {
         try
@@ -31,7 +31,6 @@ public class ProductCatalog : IProductCatalog
                 return null;
             }
 
-            // YAGNI: Не добавляем кэширование, пока нет реальной нагрузки
             return product;
         }
         catch (Exception ex)
@@ -47,7 +46,7 @@ public class ProductCatalog : IProductCatalog
     }
 }
 
-// SOLID: Dependency Inversion - абстракция репозитория
+// SOLID: принцип инверсии зависимостей - абстракция репозитория
 public interface IProductRepository
 {
     Task<Product?> GetItemAsync(string itemId);
@@ -65,7 +64,7 @@ public class ProductRepository : IProductRepository
 
     public async Task<Product?> GetItemAsync(string itemId)
     {
-        // DRY: Используем стандартный подход к запросам
+        // DRY: используем стандартный подход к запросам
         return await _context.Products
             .FirstOrDefaultAsync(p => p.Id == itemId && p.IsAvailable);
     }
@@ -73,7 +72,6 @@ public class ProductRepository : IProductRepository
     public async Task<IEnumerable<Product>> GetAvailableItemsAsync()
     {
         return await _context.Products
-            .AsNoTracking()
             .Where(p => p.IsAvailable)
             .OrderBy(p => p.Category)
             .ThenBy(p => p.Name)
@@ -81,7 +79,7 @@ public class ProductRepository : IProductRepository
     }
 }
 
-// KISS: Простая модель товара
+// KISS: простая модель товара
 public class Product
 {
     public string Id { get; set; } = string.Empty;
@@ -91,7 +89,7 @@ public class Product
     public bool IsAvailable { get; set; }
     public int RequiredLevel { get; set; } = 1;
     
-    // YAGNI: Только необходимые методы
+    // YAGNI: только необходимые методы
     public bool CanBePurchasedBy(int playerLevel) 
         => IsAvailable && playerLevel >= RequiredLevel;
 }
