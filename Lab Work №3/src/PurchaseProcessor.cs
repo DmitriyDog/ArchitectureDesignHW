@@ -1,10 +1,10 @@
-// SOLID: Interface Segregation - маленький специализированный интерфейс
+// SOLID: маленький специализированный интерфейс
 public interface IPurchaseProcessor
 {
     Task<PurchaseResult> ProcessPurchaseAsync(PurchaseRequest request);
 }
 
-// SOLID: Single Responsibility - только обработка покупки
+// SOLID: только обработка покупки
 public class PurchaseProcessor : IPurchaseProcessor
 {
     private readonly IPaymentClient _paymentClient;
@@ -12,7 +12,7 @@ public class PurchaseProcessor : IPurchaseProcessor
     private readonly IInventoryClient _inventoryClient;
     private readonly ILogger<PurchaseProcessor> _logger;
 
-    // SOLID: Dependency Inversion - зависимости через интерфейсы
+    // SOLID: зависимости через интерфейсы
     public PurchaseProcessor(
         IPaymentClient paymentClient,
         IProductCatalog productCatalog,
@@ -25,7 +25,7 @@ public class PurchaseProcessor : IPurchaseProcessor
         _logger = logger;
     }
 
-    // KISS: Один метод - одна четкая ответственность
+    // KISS: один метод - одна четкая ответственность
     public async Task<PurchaseResult> ProcessPurchaseAsync(PurchaseRequest request)
     {
         _logger.LogInformation("Processing purchase: User={UserId}, Item={ItemId}", 
@@ -80,7 +80,7 @@ public class PurchaseProcessor : IPurchaseProcessor
         }
     }
 
-    // DRY: Вынесенная логика возврата платежа
+    // DRY: вынесенная логика возврата платежа
     private async Task TryRefundPaymentAsync(string transactionId)
     {
         try
@@ -102,7 +102,7 @@ public class PurchaseRequest
     public string PaymentMethod { get; set; } = string.Empty;
 }
 
-// SOLID: Single Responsibility - отдельный класс для результата
+// SOLID: отдельный класс для результата
 public class PurchaseResult
 {
     public bool Success { get; }
@@ -116,7 +116,7 @@ public class PurchaseResult
         TransactionId = transactionId;
     }
 
-    // DRY: Фабричные методы вместо дублирования конструкторов
+    // DRY: фабричные методы вместо дублирования конструкторов
     public static PurchaseResult Success(string transactionId)
         => new PurchaseResult(true, null, transactionId);
 
