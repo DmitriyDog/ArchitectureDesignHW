@@ -113,6 +113,7 @@ pm.test("Item has name and price", function () {
 <img width="1057" height="321" alt="image" src="https://github.com/user-attachments/assets/ad8a83f7-a98e-45e7-9d8e-f537c0fb037b" />
 <img width="707" height="408" alt="image" src="https://github.com/user-attachments/assets/057e433a-06f9-43e7-966d-53e1550a2d2f" />
 
+
 Код автотестов:  
 ```js
 pm.test("Status code is 201 Created", function () {
