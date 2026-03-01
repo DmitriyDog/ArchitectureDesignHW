@@ -81,7 +81,18 @@ pm.test("Save first item ID to variable", function () {
 ```
 
 ### 2.2. GET /catalog/{itemId}
-Получение детальной информации о конкретном товаре.
+Получение детальной информации о конкретном товаре.  
+itemId - идентификатор предмета  
+name - название предмета  
+description - описание предмета  
+type - тип предмета  
+rarity - редкость предмета  
+price - цена предмета  
+availability - доступность предмета  
+tags - теги предмета  
+images - изображения предмета (иконка и полное)  
+stats - характеристики предмета  
+createdAt - дата создания предмета  
 
 Ответы: 200 OK / 404 Not Found
 <img width="1029" height="1087" alt="image" src="https://github.com/user-attachments/assets/ede46e3b-0691-42da-93b1-91c36d3218be" />
@@ -108,7 +119,10 @@ pm.test("Item has name and price", function () {
 ```
 
 ### 2.3. POST /purchases
-Оформление покупки товара.
+Оформление покупки товара.  
+itemId - идентификатор предмета  
+quantity - количество покупаемых экземпляров  
+paymentMethod - способ оплаты  
 
 <img width="1057" height="321" alt="image" src="https://github.com/user-attachments/assets/ad8a83f7-a98e-45e7-9d8e-f537c0fb037b" />
 <img width="707" height="408" alt="image" src="https://github.com/user-attachments/assets/057e433a-06f9-43e7-966d-53e1550a2d2f" />
@@ -177,6 +191,10 @@ pm.test("Item details are expanded", function () {
 
 ### 2.6. PUT /inventory/items/{instanceId}/equip
 Экипировка предмета из инвентаря.  
+equip - совершаемое действие (надеть предмет или снять)  
+instanceId - идентификатор совершаемого действия  
+equipped - статус предмета (надет или снят)  
+updatedAt - дата и время изменения состояния  
 
 Ответы: 200 OK
 <img width="1043" height="325" alt="image" src="https://github.com/user-attachments/assets/8d353cf2-993a-42e3-8189-1c645b2756f8" />
