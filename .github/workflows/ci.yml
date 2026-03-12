@@ -14,21 +14,77 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Show structure
+      - name: DEBUG - Show full structure
         run: |
-          echo "Current directory:"
+          echo "=== Current directory ==="
           pwd
-          echo "All files:"
+          echo "=== All files ==="
           ls -la
-          echo "Src directory:"
-          ls -la src/ || echo "No src directory"
+          echo "=== Entering Lab Work №5 ==="
+          cd "Lab Work №5" || echo "Cannot enter Lab Work №5"
+          ls -la
+          echo "=== Entering src ==="
+          cd src || echo "Cannot enter src"
+          ls -la
 
-      - name: Move to src and run tests
+      - name: Go to project folder and start services
         run: |
-          cd src
+          cd "Lab Work №5/src"
+          echo "Now in: $(pwd)"
+          echo "Contents:"
+          ls -la
+          
+          echo "Starting Docker Compose..."
           docker-compose up -d --build
-          sleep 15
+          
+          echo "Waiting for services to be ready..."
+          sleep 20
+          
+          echo "Checking running containers:"
           docker-compose ps
-          curl -f http://localhost:5000 || echo "Backend not ready"
-          curl -f http://localhost:8080 || echo "Frontend not ready"
+
+      - name: Install Newman for Postman tests
+        run: npm install -g newman
+
+      - name: Run Postman integration tests
+        run: |
+          cd "Lab Work №5/src"
+          echo "Running tests in: $(pwd)"
+          echo "Postman tests folder:"
+          ls -la postman-tests/
+          
+          newman run postman-tests/collection.json \
+            --reporters cli \
+            --verbose
+
+      - name: Stop and clean up
+        if: always()
+        run: |
+          cd "Lab Work №5/src"
           docker-compose down
+          echo "Services stopped"
+
+      - name: Login to Docker Hub
+        if: success()
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Backend
+        if: success()
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Lab Work №5/src/backend
+          file: ./Lab Work №5/src/backend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lab-backend:latest
+
+      - name: Build and push Frontend
+        if: success()
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Lab Work №5/src/frontend
+          file: ./Lab Work №5/src/frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lab-frontend:latest
