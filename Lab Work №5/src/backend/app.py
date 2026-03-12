@@ -48,7 +48,8 @@ def hello():
         
         count = cur.fetchone()[0]
         conn.commit()
-        
+
+        # Закрываем соединение с БД
         cur.close()
         conn.close()
         
@@ -59,3 +60,4 @@ def hello():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
