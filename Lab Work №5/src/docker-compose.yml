@@ -1,76 +1,56 @@
-name: CI Pipeline with Integration Tests
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: labdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d labdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
-on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master ]
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: labdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    networks:
+      - app-network
+    restart: unless-stopped
 
-jobs:
-  test-and-build:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:5001"
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: http://backend:5000
+    networks:
+      - app-network
+    restart: unless-stopped
 
-      # Шаг 1: Запускаем все сервисы
-      - name: Start services with Docker Compose
-        run: |
-          docker-compose up -d --build
-          echo "Waiting for services to be ready..."
-          sleep 15
+networks:
+  app-network:
+    driver: bridge
 
-      # Шаг 2: Проверяем, что все контейнеры запущены
-      - name: Check running containers
-        run: docker-compose ps
-
-      # Шаг 3: Устанавливаем Newman (бегун тестов Postman)
-      - name: Install Newman
-        run: npm install -g newman
-
-      # Шаг 4: Запускаем интеграционные тесты
-      - name: Run Postman Integration Tests
-        run: |
-          newman run postman-tests/collection.json \
-            --reporters cli,json \
-            --reporter-json-export test-results.json
-
-      # Шаг 5: Сохраняем результаты тестов (опционально)
-      - name: Upload test results
-        if: always()  # Запускается даже при провале тестов
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: test-results.json
-
-      # Шаг 6: Останавливаем сервисы
-      - name: Stop services
-        if: always()  # Останавливаем даже при провале тестов
-        run: docker-compose down
-
-      # Шаг 7: Логинимся и пушим образы (только если тесты прошли)
-      - name: Login to Docker Hub
-        if: success()
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Backend
-        if: success()
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lab-backend:latest
-
-      - name: Build and push Frontend
-        if: success()
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lab-frontend:latest
+volumes:
+  postgres_data:
+    driver: local
