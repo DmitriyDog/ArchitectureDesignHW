@@ -14,18 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: DEBUG - Show full structure
+      - name: Install docker-compose
         run: |
-          echo "=== Current directory ==="
-          pwd
-          echo "=== All files ==="
-          ls -la
-          echo "=== Entering Lab Work №5 ==="
-          cd "Lab Work №5" || echo "Cannot enter Lab Work №5"
-          ls -la
-          echo "=== Entering src ==="
-          cd src || echo "Cannot enter src"
-          ls -la
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose --version
 
       - name: Go to project folder and start services
         run: |
@@ -43,6 +36,11 @@ jobs:
           echo "Checking running containers:"
           docker-compose ps
 
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
       - name: Install Newman for Postman tests
         run: npm install -g newman
 
@@ -54,8 +52,7 @@ jobs:
           ls -la postman-tests/
           
           newman run postman-tests/collection.json \
-            --reporters cli \
-            --verbose
+            --reporters cli
 
       - name: Stop and clean up
         if: always()
