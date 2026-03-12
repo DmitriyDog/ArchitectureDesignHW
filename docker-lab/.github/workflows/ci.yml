@@ -1,10 +1,6 @@
-name: CI Pipeline
+name: CI Pipeline with PostgreSQL
 
-on:
-  push:
-    branches: [ '*' ]
-  pull_request:
-    branches: [ main, master ]
+on: [push]
 
 jobs:
   build-and-push:
@@ -12,14 +8,43 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
-      - name: Show branch name
-        run: |
-          echo "Running on branch: ${{ github.ref }}"
-          echo "Triggered by: ${{ github.event_name }}"}
 
-      # 3. Собрать образ для backend и отправить его на Docker Hub
+      # Шаг 1: Запускаем всё приложение для проверки работоспособности
+      - name: Start services with Docker Compose
+        run: docker-compose up -d --build
+
+      # Шаг 2: Даем приложению больше времени на запуск (PostgreSQL инициализируется дольше)
+      - name: Wait for services to be ready
+        run: sleep 20
+
+      # Шаг 3: Проверяем, что все контейнеры работают
+      - name: Check running containers
+        run: docker-compose ps
+
+      # Шаг 4: Проверяем, что backend отвечает
+      - name: Test backend endpoint
+        run: |
+          curl --fail http://localhost:5000 || exit 1
+
+      # Шаг 5: Проверяем, что frontend отвечает
+      - name: Test frontend endpoint
+        run: |
+          curl --fail http://localhost:8080 || exit 1
+
+      # Шаг 6: Останавливаем контейнеры
+      - name: Stop services
+        run: docker-compose down
+
+      # Шаги 7-9: Логинимся на Docker Hub и пушим образы (только если все проверки прошли)
+      - name: Login to Docker Hub
+        if: success()
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push Backend
+        if: success()
         uses: docker/build-push-action@v4
         with:
           context: ./backend
@@ -27,8 +52,8 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/lab-backend:latest
 
-      # 4. Собрать образ для frontend и отправить его на Docker Hub
       - name: Build and push Frontend
+        if: success()
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
