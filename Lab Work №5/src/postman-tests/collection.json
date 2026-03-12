@@ -1,0 +1,118 @@
+{
+  "info": {
+    "_postman_id": "2a854940-cae3-4a33-b332-53acce4213df",
+    "name": "Docker Lab Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15298706"
+  },
+  "item": [
+    {
+      "name": "Проверка backend",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Backend status is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Backend response contains 'PostgreSQL'\", function () {\r",
+              "    pm.expect(pm.response.text()).to.include(\"PostgreSQL\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Проверка frontend",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Frontend status is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Frontend response contains 'Frontend получил ответ'\", function () {\r",
+              "    pm.expect(pm.response.text()).to.include(\"Frontend получил ответ\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Проверка счётчика",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Получаем текущее значение\r",
+              "let responseText = pm.response.text();\r",
+              "let match = responseText.match(/(\\d+)/);\r",
+              "if (match) {\r",
+              "    let count = parseInt(match[0]);\r",
+              "    pm.environment.set(\"lastCount\", count);\r",
+              "}\r",
+              "\r",
+              "pm.test(\"Response contains a number\", function() {\r",
+              "    pm.expect(match).to.not.be.null;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:5000/",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
